@@ -37,6 +37,8 @@ def get_title(answer):
     title = re.sub(r'[\\/*?:"<>|]', "_", raw_title)
     # 数据清洗：有一些问题以_结尾，会导致文件名双重下划线问题
     title = title.rstrip("_")
+    # 数据清洗：title中有空格的删掉空格
+    title = title.replace(" ", "")
     return title
 
 
