@@ -293,7 +293,7 @@ def update_metadata(df, index):
             for pic in pins["content"][1:]:
                 answer += f"\n\n![image]({pic['originalUrl']})"
     else:
-        logger.error(f"已经被和谐了，无法获取元数据")
+        logger.warning(f"小瘪三，已经和谐了，无法获取元数据")
         df.at[index, "censored"] = True
         df.at[index, "author_chenged_name"] = True
         return
