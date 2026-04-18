@@ -61,7 +61,7 @@ def read_origin_data():
             favorite_folder_name = re.sub(r"_.*\.md$", "", favorite_folder)
             for answer in all_answers.split("\x02"):
                 # 数据清洗：去掉md中所有的url，再用纯净值求hash，排除链接干扰
-                hash_answer = re.sub(r"!?\[.*?\]\(.*?\)\n\n", "", answer)
+                hash_answer = re.sub(r"!\[.*?\]\(.*?\)\n\n", "", answer)
                 new_rows.append(
                     {
                         "hash": sha256(hash_answer.encode("utf-8")).hexdigest(),
