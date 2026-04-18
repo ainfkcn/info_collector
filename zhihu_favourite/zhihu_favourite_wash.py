@@ -319,7 +319,7 @@ def write_row_to_file(df, index):
         logger.info(f"牌有问题，跳过写入：{df.loc[index]['title']}")
         return
 
-    file_name = f"{df.loc[index]['title']}_{df.loc[index]['hash']}.md"
+    file_name = f"{df.loc[index]['hash']}_{df.loc[index]['title']}.md"
     file_path = os.path.join(FINAL_FOLDER_PATH, file_name)
     final_md = frontmatter.Post(
         content=df.loc[index]["answer"],
