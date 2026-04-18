@@ -106,7 +106,7 @@ def read_final_data():
                 "favorite_time_before": single_final_answer["favorite_time_before"],
                 "author": single_final_answer["author"],
                 "author_id": single_final_answer["author_id"],
-                "censored": single_final_answer["censored"],
+                "censored": single_final_answer.get("censored", False),
                 # 不写入文件的跟踪变量
                 "favorite_folder": None,
                 "title": get_title(single_final_answer.content),
@@ -332,7 +332,7 @@ def write_row_to_file(df, index):
             "favorite_time_before": df.loc[index]["favorite_time_before"],
             "author": df.loc[index]["author"],
             "author_id": df.loc[index]["author_id"],
-            "censored": df.loc[index]["censored"],
+            "censored": df.loc[index]["censored"].item(),
         },
     )
     frontmatter.dump(final_md, file_path)
