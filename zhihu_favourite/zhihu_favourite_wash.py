@@ -319,12 +319,7 @@ def write_row_to_file(df, index):
         logger.info(f"牌有问题，跳过写入：{df.loc[index]['title']}")
         return
 
-    file_name = (
-        f"{df.loc[index]['title']}_"
-        + f"{df.loc[index]['created_time']}_"
-        + f"{df.loc[index]['edited_time']}_"
-        + f"{df.loc[index]['favorite_time_before']}.md"
-    )
+    file_name = f"{df.loc[index]['title']}_{df.loc[index]['hash']}.md"
     file_path = os.path.join(FINAL_FOLDER_PATH, file_name)
     final_md = frontmatter.Post(
         content=df.loc[index]["answer"],
@@ -352,11 +347,13 @@ if __name__ == "__main__":
     delta_df = drop_duplicates_from(origin_df, final_df)
     print(delta_df.shape)
 
+    # 新导出收藏写入
     for index in delta_df.index:
         logger.info(f"——————————————————————{index}")
         update_metadata(delta_df, index)
         write_row_to_file(delta_df, index)
-    for index in final_df.index:
-        logger.info(f"——————————————————————{index}")
-        update_metadata(final_df, index)
-        write_row_to_file(final_df, index)
+    # 原有收藏元数据更新核验
+    # for index in final_df.index:
+    #     logger.info(f"——————————————————————{index}")
+    #     update_metadata(final_df, index)
+    #     write_row_to_file(final_df, index)
