@@ -57,9 +57,7 @@ def read_origin_data():
         for favorite_folder in os.listdir(favorite_folder_path):
             file_path = os.path.join(favorite_folder_path, favorite_folder)
             with open(file_path, "r", encoding="utf-8") as f:
-                all_answers = frontmatter.load(f).content.replace(
-                    "\n\n# ", "\n\n\x02# "
-                )
+                all_answers = re.sub(r"---\n\n# ", "\x02# ", frontmatter.load(f).content)
             favorite_folder_name = re.sub(r"_.*\.md$", "", favorite_folder)
             for answer in all_answers.split("\x02"):
                 # 数据清洗：去掉md中所有的url，再用纯净值求hash，排除链接干扰
