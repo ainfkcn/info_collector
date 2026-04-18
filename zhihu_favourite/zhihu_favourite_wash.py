@@ -51,6 +51,8 @@ def merge_duplicates(df):
 def read_origin_data():
     new_rows = []
     for collect_date in os.listdir(ORIGIN_FOLDER_PATH):
+        if collect_date.startswith("."):
+            continue
         favorite_folder_path = os.path.join(ORIGIN_FOLDER_PATH, collect_date)
         for favorite_folder in os.listdir(favorite_folder_path):
             file_path = os.path.join(favorite_folder_path, favorite_folder)
@@ -89,6 +91,8 @@ def read_origin_data():
 def read_final_data():
     new_rows = []
     for file in os.listdir(FINAL_FOLDER_PATH):
+        if file.startswith("."):
+            continue
         file_path = os.path.join(FINAL_FOLDER_PATH, file)
         with open(file_path, "r", encoding="utf-8") as f:
             single_final_answer = frontmatter.load(f)
