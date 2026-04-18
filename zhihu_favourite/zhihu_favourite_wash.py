@@ -353,10 +353,10 @@ if __name__ == "__main__":
     print(delta_df.shape)
 
     for index in delta_df.index:
-        logger.info("——————————————————————")
+        logger.info(f"——————————————————————{index}")
         update_metadata(delta_df, index)
         write_row_to_file(delta_df, index)
     for index in final_df.index:
-        logger.info("——————————————————————")
+        logger.info(f"——————————————————————{index}")
         update_metadata(final_df, index)
         write_row_to_file(final_df, index)
