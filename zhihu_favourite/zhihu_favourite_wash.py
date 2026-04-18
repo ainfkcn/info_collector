@@ -127,11 +127,11 @@ def drop_duplicates_from(from_df, in_df):
 
 
 def get_json_str(answer, title):
-    url_link = re.search(r"\[原文链接\]\((.*?)\)", answer)
+    url_link = re.search(r"\[(原文|视频)链接\]\((.*?)\)", answer)
     if not url_link:
-        logger.error(f"未找到原文链接")
+        logger.error(f"未找到链接")
         return None
-    url_link = url_link.group(1)
+    url_link = url_link.group(2)
     logger.info(f"url: {url_link}")
 
     with sync_playwright() as p:
@@ -294,6 +294,15 @@ def update_metadata(df, index):
                 title = pins["content"][0]["title"]
             for pic in pins["content"][1:]:
                 answer += f"\n\n![image]({pic['originalUrl']})"
+    elif entities["users"] and entities["zvideos"]:
+        users = dict(list(entities["users"].values())[0])
+        zvideos = dict(list(entities["zvideos"].values())[0])
+
+        created_time = datetime.fromtimestamp(zvideos["publishedAt"]).strftime("%Y-%m-%d")
+        edited_time = datetime.fromtimestamp(zvideos["updatedAt"]).strftime("%Y-%m-%d")
+        favorite_time_after = created_time
+        author = users["name"]
+        author_id = users["id"]
     else:
         logger.warning(f"小瘪三，已经和谐了，无法获取元数据")
         df.at[index, "censored"] = True
