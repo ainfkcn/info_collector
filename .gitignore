@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+
+.vscode
+zhihu_favourite/final_data
+zhihu_favourite/origin_data
