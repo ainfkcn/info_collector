@@ -350,6 +350,15 @@ def write_row_to_file(df, index):
     logger.info(f"牌没有问题，写入文件成功: {file_name}")
 
 
+def refine_final_data(final_df, index):
+    logger.info(f"给我擦皮鞋，对清洗后的数据做后处理")
+    # 替换空连接[]()
+    if "[]()" in final_df.loc[index]["answer"]:
+        final_df.at[index, "answer"] = final_df.loc[index]["answer"].replace("[]()", "")
+        final_df.at[index, "modified"] = True
+    pass
+
+
 if __name__ == "__main__":
     origin_df = read_origin_data()
     print(origin_df.shape)
@@ -364,7 +373,8 @@ if __name__ == "__main__":
         update_metadata(delta_df, index)
         write_row_to_file(delta_df, index)
     # 原有收藏元数据更新核验
-    # for index in final_df.index:
-    #     logger.info(f"——————————————————————{index}")
-    #     update_metadata(final_df, index)
-    #     write_row_to_file(final_df, index)
+    for index in final_df.index:
+        logger.info(f"——————————————————————{index}")
+        # update_metadata(final_df, index)
+        refine_final_data(final_df, index)
+        write_row_to_file(final_df, index)
