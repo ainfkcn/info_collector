@@ -7,6 +7,7 @@ import requests
 from datetime import datetime
 from loguru import logger
 from hashlib import sha256
+from urllib.parse import urlparse, parse_qs, unquote
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from zhihu_favourite.network_util import get_json_str
@@ -132,34 +133,59 @@ def picture_localization(final_df, index):
     os.makedirs(pic_dir, exist_ok=True)
     answer = final_df.loc[index]["answer"]
     modified = False
-    for match in re.finditer(r"!\[.*?\]\((.*?)\)", answer):
-        url = match.group(1)
+    for match in re.finditer(r"(\n\n)?!\[(.*?)\]\((.*?)\)", answer):
+        url = match.group(3)
+        # 已经本地化的，跳过
         if not url.startswith(("http://", "https://")):
-            continue  # 跳过本地链接
-        if "equation" in url:
+            continue
+        # 公式图片，不用下载图，直接从url里面拼latex
+        elif "equation" in url:
             # 取tex=部分自己拼latex
-            # 先跳过吧
-            continue
-        try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-        except Exception as e:
-            logger.warning(f"下载图片失败: {url}, 错误: {e}")
-            continue
-        pic_content = response.content
-        pic_hash = sha256(pic_content).hexdigest()[:8]
-        # 获取原后缀
-        ext = re.sub(r"\?source=.*", "", os.path.splitext(url)[1]) or ".jpg"  # 默认jpg
-        new_filename = f"{pic_hash}_{final_df.loc[index]['hash'][:8]}_{final_df.loc[index]['title']}{ext}"
-        new_path = os.path.join(pic_dir, new_filename)
-        with open(new_path, "wb") as f:
-            f.write(pic_content)
-        # 替换链接
-        old_link = match.group(0)
-        new_link = f"![{match.group(0)[2:-1].split(']')[0]}](.pic/{new_filename})"
-        answer = answer.replace(old_link, new_link)
-        modified = True
-        logger.info(f"下载图片到本地：{new_filename}")
+            parsed = urlparse(url)
+            query = parse_qs(parsed.query)
+            tex = query.get("tex", [None])[0]
+            tex = unquote(tex)
+
+            if not tex:
+                continue
+            # 转换过程里遇到的后处理部分
+            tex = (
+                tex.replace("\\[", "")
+                .replace("\\]", "")
+                .replace("\\bold", "\\boldsymbol")
+                .replace("\\bm", "\\boldsymbol")
+                .removeprefix("\\\\")
+                .removesuffix("\\\\")
+            )
+
+            new_link = f"\n\n$$\n{tex}\n$$"
+            answer = answer.replace(match.group(0), new_link)
+            modified = True
+            logger.info(f"公式图片转换为 LaTeX 块：{tex}")
+        # 真正的图片，这才需要下载
+        else:
+            try:
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+            except Exception as e:
+                logger.warning(f"下载图片失败: {url}, 错误: {e}")
+                continue
+            pic_content = response.content
+            pic_hash = sha256(pic_content).hexdigest()[:8]
+            # 获取原后缀
+            ext = (
+                re.sub(r"\?source=.*", "", os.path.splitext(url)[1]) or ".jpg"
+            )  # 默认jpg
+            new_filename = f"{pic_hash}_{final_df.loc[index]['hash'][:8]}_{final_df.loc[index]['title']}{ext}"
+            new_path = os.path.join(pic_dir, new_filename)
+            with open(new_path, "wb") as f:
+                f.write(pic_content)
+            # 替换链接
+            old_link = match.group(0)
+            new_link = f"\n\n![{match.group(2)}](.pic/{new_filename})"
+            answer = answer.replace(old_link, new_link)
+            modified = True
+            logger.info(f"下载图片到本地：{new_filename}")
     if modified:
         final_df.at[index, "answer"] = answer
         final_df.at[index, "modified"] = True
