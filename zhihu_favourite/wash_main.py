@@ -145,6 +145,7 @@ def picture_localization(final_df, index):
             response.raise_for_status()
         except Exception as e:
             logger.warning(f"下载图片失败: {url}, 错误: {e}")
+            continue
         pic_content = response.content
         pic_hash = sha256(pic_content).hexdigest()[:8]
         # 获取原后缀
