@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import requests
 import frontmatter
 import pandas as pd
 from time import sleep
@@ -380,6 +381,44 @@ def refine_final_data(final_df, index):
         logger.info("删除前导空格")
 
 
+def picture_localization(final_df, index):
+    # 图片本地化
+    assets_dir = os.path.join(FINAL_FOLDER_PATH, ".assets")
+    os.makedirs(assets_dir, exist_ok=True)
+    answer = final_df.loc[index]["answer"]
+    modified = False
+    for match in re.finditer(r"!\[.*?\]\((.*?)\)", answer):
+        url = match.group(1)
+        if not url.startswith(("http://", "https://")):
+            continue  # 跳过本地链接
+        if "equation" in url:
+            # 取tex=部分自己拼latex
+            # 先跳过吧
+            continue
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+        except Exception as e:
+            logger.warning(f"下载图片失败: {url}, 错误: {e}")
+        pic_content = response.content
+        pic_hash = sha256(pic_content).hexdigest()[:8]
+        # 获取原后缀
+        ext = re.sub(r"\?source=.*", "", os.path.splitext(url)[1]) or ".jpg"  # 默认jpg
+        new_filename = f"{pic_hash}_{final_df.loc[index]['hash'][:8]}_{final_df.loc[index]['title']}{ext}"
+        new_path = os.path.join(assets_dir, new_filename)
+        with open(new_path, "wb") as f:
+            f.write(pic_content)
+        # 替换链接
+        old_link = match.group(0)
+        new_link = f"![{match.group(0)[2:-1].split(']')[0]}](.assets/{new_filename})"
+        answer = answer.replace(old_link, new_link)
+        modified = True
+        logger.info(f"下载图片到本地：{new_filename}")
+    if modified:
+        final_df.at[index, "answer"] = answer
+        final_df.at[index, "modified"] = True
+
+
 if __name__ == "__main__":
     origin_df = read_origin_data()
     print(origin_df.shape)
@@ -406,4 +445,5 @@ if __name__ == "__main__":
         )
         # update_metadata(final_df, index) # 作者改名后重新同步metadata，一般不跑
         refine_final_data(final_df, index)
+        picture_localization(final_df, index)
         write_row_to_file(final_df, index)
