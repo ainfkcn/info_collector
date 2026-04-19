@@ -114,8 +114,8 @@ def refine_final_data(final_df, index):
         logger.info("替换空连接")
     # 删除汉字或全角标点行前空格或 tab
     new_answer = re.sub(
-        # 正则释义     数字 破折号 左引号     汉字       全角标点    全角英文数字
-        r"^[ 　\t]+(?=[0-9\u2014\u201c\u4e00-\u9fff\u3000-\u303F\uFF00-\uFFEF])",
+        # 正则释义               数字 破折号 左引号     汉字       全角标点    全角英文数字
+        r"^[\u200b\u3000 \t]+(?=[0-9\u2014\u201c\u4e00-\u9fff\u3000-\u303F\uFF00-\uFFEF])",
         "",
         final_df.loc[index]["answer"],
         flags=re.MULTILINE,
