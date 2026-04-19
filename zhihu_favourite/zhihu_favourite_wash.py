@@ -10,8 +10,8 @@ from hashlib import sha256
 from playwright.sync_api import sync_playwright
 
 
-ORIGIN_FOLDER_PATH = r"zhihu_favourite/origin_data"
-FINAL_FOLDER_PATH = r"zhihu_favourite/final_data"
+ORIGIN_FOLDER_PATH = r"E:\\zhihu_favourite\\origin_data"
+FINAL_FOLDER_PATH = r"E:\\zhihu_favourite\\final_data"
 DATAFRAME_COLUMNS = [
     "hash",
     "tags",
@@ -26,7 +26,7 @@ DATAFRAME_COLUMNS = [
     "favorite_folder",
     "title",
     "answer",
-    "author_chenged_name",
+    "modified",
     "json_str",
 ]
 
@@ -81,7 +81,7 @@ def read_origin_data():
                         "favorite_folder": favorite_folder_name,
                         "title": get_title(answer),
                         "answer": answer,
-                        "author_chenged_name": False,
+                        "modified": False,
                         "json_str": None,
                     }
                 )
@@ -113,7 +113,7 @@ def read_final_data():
                 "favorite_folder": None,
                 "title": get_title(single_final_answer.content),
                 "answer": single_final_answer.content,
-                "author_chenged_name": False,
+                "modified": False,
                 "json_str": None,
             }
         )
@@ -298,7 +298,9 @@ def update_metadata(df, index):
         users = dict(list(entities["users"].values())[0])
         zvideos = dict(list(entities["zvideos"].values())[0])
 
-        created_time = datetime.fromtimestamp(zvideos["publishedAt"]).strftime("%Y-%m-%d")
+        created_time = datetime.fromtimestamp(zvideos["publishedAt"]).strftime(
+            "%Y-%m-%d"
+        )
         edited_time = datetime.fromtimestamp(zvideos["updatedAt"]).strftime("%Y-%m-%d")
         favorite_time_after = created_time
         author = users["name"]
@@ -306,15 +308,16 @@ def update_metadata(df, index):
     else:
         logger.warning(f"小瘪三，已经和谐了，无法获取元数据")
         df.at[index, "censored"] = True
-        df.at[index, "author_chenged_name"] = True
+        df.at[index, "modified"] = True
         return
 
     df.at[index, "created_time"] = created_time
     df.at[index, "edited_time"] = edited_time
     df.at[index, "favorite_time_after"] = favorite_time_after
+    # 这里为了方便考虑：未清洗数据作者名必然变化；清洗后数据只有作者名会变化
     if author != df.loc[index]["author"]:
         logger.info(f"作者改名: {df.loc[index]['author']} -> {author}")
-        df.at[index, "author_chenged_name"] = True
+        df.at[index, "modified"] = True
     df.at[index, "author"] = author
     df.at[index, "author_id"] = author_id
     df.at[index, "title"] = title
@@ -326,7 +329,7 @@ def update_metadata(df, index):
 
 
 def write_row_to_file(df, index):
-    if not df.loc[index]["author_chenged_name"]:
+    if not df.loc[index]["modified"]:
         logger.info(f"牌有问题，跳过写入：{df.loc[index]['title']}")
         return
 
