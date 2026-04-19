@@ -185,7 +185,8 @@ if __name__ == "__main__":
     for index in final_df.index:
         logger.info(f"——————————————————————{index}")
         logger.info(
-            f"给我擦皮鞋，对清洗后的数据做后处理: {final_df.loc[index]['title']}"
+            f"给我擦皮鞋，对清洗后的数据做后处理: {final_df.loc[index]['hash'][:8]}"
+            + f"_{final_df.loc[index]['title']}"
         )
         # update_metadata(final_df, index) # 作者改名后重新同步metadata，一般不跑
         refine_final_data(final_df, index)
