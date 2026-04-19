@@ -166,12 +166,19 @@ def picture_localization(final_df, index):
 
 
 if __name__ == "__main__":
+    logger.add(
+        "log/zhihu_favourite/img_down.log",
+        level="INFO",
+        rotation="10 MB",
+        encoding="utf-8",
+    )
+
     origin_df = read_origin_data()
-    print(origin_df.shape)
+    logger.info(origin_df.shape)
     final_df = read_final_data()
-    print(final_df.shape)
+    logger.info(final_df.shape)
     delta_df = drop_duplicates_from(origin_df, final_df)
-    print(delta_df.shape)
+    logger.info(delta_df.shape)
 
     # 新导出收藏写入
     for index in delta_df.index:
