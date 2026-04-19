@@ -289,7 +289,11 @@ def update_metadata(df, index):
         author = users["name"]
         author_id = users["id"]
         if "[object Object]" in df.loc[index]["answer"]:
-            answer = pins["content"][0]["content"]
+            answer = re.sub(
+                r"\[object Object\](,\[object Object\])*",
+                pins["content"][0]["content"],
+                answer,
+            )
             if pins["content"][0]["title"]:
                 title = pins["content"][0]["title"]
             for pic in pins["content"][1:]:
