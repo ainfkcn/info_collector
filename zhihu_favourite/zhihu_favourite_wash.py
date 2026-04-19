@@ -339,20 +339,23 @@ def write_row_to_file(df, index):
 
     file_name = f"{df.loc[index]['hash']}_{df.loc[index]['title']}.md"
     file_path = os.path.join(FINAL_FOLDER_PATH, file_name)
-    final_md = frontmatter.Post(
-        content=df.loc[index]["answer"],
-        **{
-            "hash": df.loc[index]["hash"],
-            "tags": df.loc[index]["tags"],
-            "created_time": df.loc[index]["created_time"],
-            "edited_time": df.loc[index]["edited_time"],
-            "favorite_time_after": df.loc[index]["favorite_time_after"],
-            "favorite_time_before": df.loc[index]["favorite_time_before"],
-            "author": df.loc[index]["author"],
-            "author_id": df.loc[index]["author_id"],
-            "censored": df.loc[index]["censored"].item(),
-        },
-    )
+    metadata = {
+        "hash": df.loc[index]["hash"],
+        "tags": df.loc[index]["tags"],
+        "created_time": df.loc[index]["created_time"],
+        "edited_time": df.loc[index]["edited_time"],
+        "favorite_time_after": df.loc[index]["favorite_time_after"],
+        "favorite_time_before": df.loc[index]["favorite_time_before"],
+        "author": df.loc[index]["author"],
+        "author_id": df.loc[index]["author_id"],
+        "censored": df.loc[index]["censored"].item(),
+    }
+    # 把 NaN 统一转回 None，保留所有元数据字段；list 直接保留
+    metadata = {
+        k: (None if (v is not None and not isinstance(v, list) and pd.isna(v)) else v)
+        for k, v in metadata.items()
+    }
+    final_md = frontmatter.Post(content=df.loc[index]["answer"], **metadata)
     frontmatter.dump(final_md, file_path)
     logger.info(f"牌没有问题，写入文件成功: {file_name}")
 
