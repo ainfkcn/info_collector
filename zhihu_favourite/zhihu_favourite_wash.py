@@ -366,7 +366,17 @@ def refine_final_data(final_df, index):
     if "[]()" in final_df.loc[index]["answer"]:
         final_df.at[index, "answer"] = final_df.loc[index]["answer"].replace("[]()", "")
         final_df.at[index, "modified"] = True
-    pass
+    # 删除汉字或全角标点行前空格或 tab
+    new_answer = re.sub(
+        #             数字 破折号 左引号     汉字       全角标点    全角英文数字
+        r"^[ 　\t]+(?=[0-9\u2014\u201c\u4e00-\u9fff\u3000-\u303F\uFF00-\uFFEF])",
+        "",
+        final_df.loc[index]["answer"],
+        flags=re.MULTILINE,
+    )
+    if new_answer != final_df.loc[index]["answer"]:
+        final_df.at[index, "answer"] = new_answer
+        final_df.at[index, "modified"] = True
 
 
 if __name__ == "__main__":
