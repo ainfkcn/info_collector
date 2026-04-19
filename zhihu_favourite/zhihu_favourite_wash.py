@@ -244,7 +244,6 @@ def update_metadata(df, index):
     answer = df.loc[index]["answer"]
     title = df.loc[index]["title"]
 
-    logger.info(f"我要验牌，正在处理: {df.loc[index]['favorite_folder']} - {title}")
     json_str = get_json_str(answer, title)
     if not json_str:
         return
@@ -298,6 +297,7 @@ def update_metadata(df, index):
                 title = pins["content"][0]["title"]
             for pic in pins["content"][1:]:
                 answer += f"\n\n![image]({pic['originalUrl']})"
+    # 视频 视频内容需要手动下载，此处只能解决元数据
     elif entities["users"] and entities["zvideos"]:
         users = dict(list(entities["users"].values())[0])
         zvideos = dict(list(entities["zvideos"].values())[0])
@@ -334,7 +334,7 @@ def update_metadata(df, index):
 
 def write_row_to_file(df, index):
     if not df.loc[index]["modified"]:
-        logger.info(f"牌有问题，跳过写入：{df.loc[index]['title']}")
+        logger.info(f"牌没有问题，跳过写入：{df.loc[index]['title']}")
         return
 
     file_name = f"{df.loc[index]['hash'][0:8]}_{df.loc[index]['title']}.md"
@@ -361,14 +361,14 @@ def write_row_to_file(df, index):
 
 
 def refine_final_data(final_df, index):
-    logger.info(f"给我擦皮鞋，对清洗后的数据做后处理")
     # 替换空连接[]()
     if "[]()" in final_df.loc[index]["answer"]:
         final_df.at[index, "answer"] = final_df.loc[index]["answer"].replace("[]()", "")
         final_df.at[index, "modified"] = True
+        logger.info("替换空连接")
     # 删除汉字或全角标点行前空格或 tab
     new_answer = re.sub(
-        #             数字 破折号 左引号     汉字       全角标点    全角英文数字
+        # 正则释义     数字 破折号 左引号     汉字       全角标点    全角英文数字
         r"^[ 　\t]+(?=[0-9\u2014\u201c\u4e00-\u9fff\u3000-\u303F\uFF00-\uFFEF])",
         "",
         final_df.loc[index]["answer"],
@@ -377,6 +377,7 @@ def refine_final_data(final_df, index):
     if new_answer != final_df.loc[index]["answer"]:
         final_df.at[index, "answer"] = new_answer
         final_df.at[index, "modified"] = True
+        logger.info("删除前导空格")
 
 
 if __name__ == "__main__":
@@ -390,11 +391,19 @@ if __name__ == "__main__":
     # 新导出收藏写入
     for index in delta_df.index:
         logger.info(f"——————————————————————{index}")
+        logger.info(
+            f"我要验牌，正在处理: {delta_df.loc[index]['favorite_folder']}"
+            f" - {delta_df.loc[index]['title']}"
+        )
         update_metadata(delta_df, index)
         write_row_to_file(delta_df, index)
     # 原有收藏元数据更新核验
     for index in final_df.index:
         logger.info(f"——————————————————————{index}")
-        # update_metadata(final_df, index)
+        logger.info(
+            f"给我擦皮鞋，对清洗后的数据做后处理: {final_df.loc[index]['favorite_folder']}"
+            f" - {final_df.loc[index]['title']}"
+        )
+        # update_metadata(final_df, index) # 作者改名后重新同步metadata，一般不跑
         refine_final_data(final_df, index)
         write_row_to_file(final_df, index)
