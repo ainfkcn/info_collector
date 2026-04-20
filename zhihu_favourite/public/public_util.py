@@ -35,9 +35,12 @@ def get_title(answer):
 def merge_duplicates(df):
     """按hash分组合并重复行，tags列融合成不重复的列表"""
     agg_map = {col: "first" for col in DATAFRAME_COLUMNS if col != "hash"}
+    # tag聚合成列表
     agg_map["tags"] = lambda x: sorted({tag for tags_list in x for tag in tags_list})
+    # 收藏时间上限取最早的
     agg_map["favorite_time_before"] = lambda x: min(x)
-    agg_map["title"] = lambda x: max(len(x))
+    # title取最长的
+    agg_map["title"] = lambda x: max(x, key=len)
     return df.groupby("hash").agg(agg_map).reset_index()
 
 
@@ -58,8 +61,14 @@ def get_shorted_hash(hash_hex):
 
 
 def get_answer_hash(answer):
-    # 数据清洗：去掉md中所有图片url，再用纯净值求hash，排除图床干扰
-    temp = re.sub(r"!\[.*?\]\(.*?\)\n\n", "", answer)
+    # 去掉md中所有url，再用纯净值求hash，排除干扰
+    temp = re.sub(r"!?\[.*?\]\(.*?\)", "", answer)
     # 去掉标题栏，防止问题变更导致答案重复
     temp = re.sub(r"# .*\n", "", temp)
+    # 去掉所有不重要的额外符号
+    temp = re.sub(r"[\u200b\u3000\u00A0\s\t\n\r]", "")
+    # 4. 移除 Markdown 装饰符 (防止加粗/斜体符号变动影响 Hash)
+    temp = re.sub(r"[\*\_\~\`]", "", temp)
+    # 强制小写，消除英文字母大小写差异
+    temp = temp.lower()
     return get_hash(temp.encode("utf-8"))
