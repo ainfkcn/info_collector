@@ -4,36 +4,33 @@ import frontmatter
 import pandas as pd
 
 from loguru import logger
-from hashlib import sha256
 
-from zhihu_favourite.public_util import (
-    ORIGIN_FOLDER_PATH,
-    FINAL_FOLDER_PATH,
+from zhihu_favourite.public.public_util import (
     DATAFRAME_COLUMNS,
     get_title,
     merge_duplicates,
+    get_answer_hash,
+    get_shorted_hash,
 )
 
 
-def read_origin_data():
+def read_raw_data(path):
     new_rows = []
-    for collect_date in os.listdir(ORIGIN_FOLDER_PATH):
+    for collect_date in os.listdir(path):
         if collect_date.startswith("."):
             continue
-        favorite_folder_path = os.path.join(ORIGIN_FOLDER_PATH, collect_date)
+        favorite_folder_path = os.path.join(path, collect_date)
         for favorite_folder in os.listdir(favorite_folder_path):
-            file_path = os.path.join(favorite_folder_path, favorite_folder)
-            with open(file_path, "r", encoding="utf-8") as f:
-                all_answers = re.sub(
-                    r"---\n\n# ", "\x02# ", frontmatter.load(f).content
-                )
             favorite_folder_name = re.sub(r"_.*\.md$", "", favorite_folder)
+            file_path = os.path.join(favorite_folder_path, favorite_folder)
+            all_answers = re.sub(
+                r"---\n\n# ", "\x02# ", frontmatter.load(file_path).content
+            )
             for answer in all_answers.split("\x02"):
-                # 数据清洗：去掉md中所有的url，再用纯净值求hash，排除链接干扰
-                hash_answer = re.sub(r"!\[.*?\]\(.*?\)\n\n", "", answer)
+                answer_hash = get_answer_hash(answer)
                 new_rows.append(
                     {
-                        "hash": sha256(hash_answer.encode("utf-8")).hexdigest(),
+                        "hash": answer_hash,
                         "tags": [favorite_folder_name],
                         "created_time": None,
                         "edited_time": None,
@@ -50,17 +47,21 @@ def read_origin_data():
                         "json_str": None,
                     }
                 )
-    origin_df = pd.DataFrame(new_rows).sort_values(by="hash").reset_index(drop=True)
+    origin_df = (
+        pd.DataFrame(new_rows, columns=DATAFRAME_COLUMNS)
+        .sort_values(by="hash")
+        .reset_index(drop=True)
+    )
     origin_df = merge_duplicates(origin_df)
     return origin_df
 
 
-def read_final_data():
+def read_washed_data(path):
     new_rows = []
-    for file in os.listdir(FINAL_FOLDER_PATH):
+    for file in os.listdir(path):
         if file.startswith("."):
             continue
-        file_path = os.path.join(FINAL_FOLDER_PATH, file)
+        file_path = os.path.join(path, file)
         with open(file_path, "r", encoding="utf-8") as f:
             single_final_answer = frontmatter.load(f)
         new_rows.append(
@@ -85,13 +86,13 @@ def read_final_data():
     return pd.DataFrame(new_rows, columns=DATAFRAME_COLUMNS)
 
 
-def write_row_to_file(df, index):
+def write_row_to_file(df, index, root_path):
     if not df.loc[index]["modified"]:
         logger.info(f"牌没有问题，跳过写入：{df.loc[index]['title']}")
         return
 
-    file_name = f"{df.loc[index]['hash'][:8]}_{df.loc[index]['title']}.md"
-    file_path = os.path.join(FINAL_FOLDER_PATH, file_name)
+    file_name = f"{df.loc[index]['title']}_{get_shorted_hash(df.loc[index]['hash'])}.md"
+    file_path = os.path.join(root_path, file_name)
     metadata = {
         "hash": df.loc[index]["hash"],
         "tags": df.loc[index]["tags"],
