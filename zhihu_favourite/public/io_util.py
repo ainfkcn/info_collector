@@ -110,5 +110,7 @@ def write_row_to_file(df, index, root_path):
         for k, v in metadata.items()
     }
     final_md = frontmatter.Post(content=df.loc[index]["answer"], **metadata)
+    if os.path.exists(file_path):
+        logger.error(f"写入冲突：{file_path}")
     frontmatter.dump(final_md, file_path)
     logger.info(f"牌没有问题，写入文件成功: {file_name}")
