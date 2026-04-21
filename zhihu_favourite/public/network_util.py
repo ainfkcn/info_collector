@@ -108,7 +108,7 @@ def get_json_str(answer):
             if script_content:
                 return script_content
             else:
-                logger.warning(f"未找到初始数据")
+                logger.error(f"未找到初始数据")
                 return None
 
         except Exception as e:

@@ -83,7 +83,7 @@ def picture_localization(delta_df, index):
                 response = requests.get(url, timeout=10)
                 response.raise_for_status()
             except Exception as e:
-                logger.warning(f"下载图片失败: {url}, 错误: {e}")
+                logger.error(f"下载图片失败: {url}, 错误: {e}")
                 continue
             pic_content = response.content
             pic_hash = get_hash(pic_content, short=True)
