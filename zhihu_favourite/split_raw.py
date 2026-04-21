@@ -116,11 +116,7 @@ def exec():
     raw_df = read_raw_data(RAW_PATH)
     logger.info(raw_df.shape)
     washed_df = pd.concat(
-        [
-            read_washed_data(MIDDLE_PATH),
-            read_washed_data(AUTO_WASHED_PATH),
-            read_washed_data(MANUAL_WASHED_PATH),
-        ],
+        [read_washed_data(MIDDLE_PATH)],
         ignore_index=True,
     )
     logger.info(washed_df.shape)
