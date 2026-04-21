@@ -90,6 +90,7 @@ def write_row_to_file(df, index, root_path):
     if not df.loc[index]["modified"]:
         logger.info(f"牌没有问题，跳过写入：{df.loc[index]['title']}")
         return
+    os.makedirs(root_path, exist_ok=True)
 
     file_name = f"{df.loc[index]['title']}_{get_shorted_hash(df.loc[index]['hash'])}.md"
     file_path = os.path.join(root_path, file_name)
