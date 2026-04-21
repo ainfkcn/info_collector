@@ -61,12 +61,17 @@ def get_shorted_hash(hash_hex):
 
 
 def get_answer_hash(answer):
-    # 去掉md中所有url，再用纯净值求hash，排除干扰
+    # 获取原始链接
+    answer_link = re.search(r"\[..链接\]\(.*?\)", answer).group()
+    # 去掉md中所有url
     temp = re.sub(r"!?\[.*?\]\(.*?\)", "", answer)
-    # 去掉标题栏，防止问题变更导致答案重复
+    # 去掉顶级标题栏，防止问题变更导致答案重复
     temp = re.sub(r"# .*\n", "", temp)
+    # 去掉所有链接和标题栏后重新拼接原始链接
+    # 为什么不能去掉所有url：因为要保留原始链接做uuid，否则会丢内容
+    temp = answer_link + temp
     # 去掉所有不重要的额外符号
-    temp = re.sub(r"[\u200b\u3000\u00A0\s\t\n\r]", "")
+    temp = re.sub(r"[\u200b\u3000\u00A0\s\t\n\r]", "", temp)
     # 4. 移除 Markdown 装饰符 (防止加粗/斜体符号变动影响 Hash)
     temp = re.sub(r"[\*\_\~\`]", "", temp)
     # 强制小写，消除英文字母大小写差异
