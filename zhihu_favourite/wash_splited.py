@@ -10,6 +10,7 @@ from config import (
     ZHIHU_FAVOURITE_ROOT,
     MIDDLE_PATH,
     AUTO_WASHED_PATH,
+    AUTO_WASHED_PASSED_PATH,
     MANUAL_WASHED_PATH,
 )
 from zhihu_favourite.public.io_util import (
@@ -110,10 +111,7 @@ def exec():
     middle_df = read_washed_data(MIDDLE_PATH)
     logger.info(middle_df.shape)
     washed_df = pd.concat(
-        [
-            read_washed_data(AUTO_WASHED_PATH),
-            read_washed_data(MANUAL_WASHED_PATH),
-        ],
+        [read_washed_data(MANUAL_WASHED_PATH)],
         ignore_index=True,
     )
     logger.info(washed_df.shape)
@@ -128,8 +126,12 @@ def exec():
         )
         refine_final_data(delta_df, index)
         picture_localization(delta_df, index)
-        delta_df.at[index, "modified"] = True
-        write_row_to_file(delta_df, index, AUTO_WASHED_PATH)
+        if not delta_df.at[index, "modified"]:
+            logger.info("这条无需处理，放入特殊目录")
+            delta_df.at[index, "modified"] = True
+            write_row_to_file(delta_df, index, AUTO_WASHED_PASSED_PATH)
+        else:
+            write_row_to_file(delta_df, index, AUTO_WASHED_PATH)
 
 
 if __name__ == "__main__":
