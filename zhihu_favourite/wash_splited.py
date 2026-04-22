@@ -58,8 +58,7 @@ def picture_localization(delta_df, index):
     pic_dir = os.path.join(ZHIHU_FAVOURITE_ROOT, ".pic")
     os.makedirs(pic_dir, exist_ok=True)
     answer = delta_df.loc[index]["answer"]
-    modified = False
-    for match in re.finditer(r"(\n\n)?!\[(.*?)\]\((.*?)\)", answer):
+    for match in re.finditer(r"(\n\n)?!\[(.*?)\]\((.*?)\)(\n\n)?", answer):
         url = match.group(3)
         # 已经本地化的，跳过
         if not url.startswith(("http://", "https://")):
@@ -83,10 +82,12 @@ def picture_localization(delta_df, index):
                 .removeprefix("\\\\")
                 .removesuffix("\\\\")
             )
-
-            new_link = f"\n\n$$\n{tex}\n$$"
-            answer = answer.replace(match.group(0), new_link)
-            modified = True
+            if match.group(1) or "\\\\" in tex or "\\begin" in tex or "\\end" in tex:
+                new_tex = f"\n\n$$\n{tex}\n$$\n\n"
+            else:
+                new_tex = f"${tex}$"
+            answer = answer.replace(match.group(0), new_tex)
+            delta_df.at[index, "modified"] = True
             logger.info(f"公式图片转换为 LaTeX 块：{tex}")
         # 真正的图片，这才需要下载
         else:
@@ -112,11 +113,10 @@ def picture_localization(delta_df, index):
                 logger.info(f"下载图片到本地：{new_filename}")
             # 替换链接
             old_link = match.group(0)
-            new_link = f"\n\n![{match.group(2)}]({new_path})"
+            new_link = f"\n\n![{match.group(2)}]({new_path})\n\n"
             answer = answer.replace(old_link, new_link)
-            modified = True
-            logger.info(f"下载图片到本地：{new_filename}")
-    if modified:
+            delta_df.at[index, "modified"] = True
+    if delta_df.at[index, "modified"]:
         delta_df.at[index, "answer"] = answer
 
 
@@ -138,7 +138,6 @@ def exec():
             f"给我擦皮鞋，对清洗后的数据做后处理: {get_shorted_hash(delta_df.loc[index]['title'])}"
             + f"_{delta_df.loc[index]['hash']}"
         )
-        refine_final_data(delta_df, index)
         picture_localization(delta_df, index)
         refine_data(delta_df, index)
         # if not delta_df.at[index, "modified"]:
