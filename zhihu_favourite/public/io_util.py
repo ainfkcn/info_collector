@@ -62,6 +62,8 @@ def read_washed_data(path):
         if file.startswith("."):
             continue
         file_path = os.path.join(path, file)
+        if not os.path.isfile(file_path):
+            continue
         with open(file_path, "r", encoding="utf-8") as f:
             single_final_answer = frontmatter.load(f)
         new_rows.append(
@@ -88,7 +90,7 @@ def read_washed_data(path):
 
 def write_row_to_file(df, index, root_path):
     if not df.loc[index]["modified"]:
-        logger.info(f"牌没有问题，跳过写入：{df.loc[index]['title']}")
+        logger.info(f"文件未变更，跳过写入：{df.loc[index]['title']}")
         return
     os.makedirs(root_path, exist_ok=True)
 
@@ -112,6 +114,6 @@ def write_row_to_file(df, index, root_path):
     }
     final_md = frontmatter.Post(content=df.loc[index]["answer"], **metadata)
     if os.path.exists(file_path):
-        logger.error(f"写入冲突：{file_path}")
+        logger.warning(f"文件已存在，覆盖写入：{file_path}")
     frontmatter.dump(final_md, file_path)
-    logger.info(f"牌没有问题，写入文件成功: {file_name}")
+    logger.info(f"写入文件成功: {file_name}")

@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 def get_json_str(answer):
     url_link = re.search(r"\[(原文|视频)链接\]\((.*?)\)", answer)
     if not url_link:
-        logger.error(f"未找到链接")
+        logger.error(f"未找到原文/原视频链接")
         return None
     url_link = url_link.group(2)
     logger.info(f"url: {url_link}")
@@ -108,7 +108,7 @@ def get_json_str(answer):
             if script_content:
                 return script_content
             else:
-                logger.error(f"未找到初始数据")
+                logger.error(f"未找到initialState数据")
                 return None
 
         except Exception as e:

@@ -25,7 +25,7 @@ def update_metadata(df, index):
     try:
         json_data = json.loads(json_str)
     except json.JSONDecodeError:
-        logger.error(f"JSON解析失败，跳过")
+        logger.error(f"JSON解析失败，跳过当前文件")
         return
 
     # 回答
@@ -89,7 +89,7 @@ def update_metadata(df, index):
         author_id = users["id"]
     # 和谐
     else:
-        logger.warning(f"小瘪三，已经和谐了，无法获取元数据")
+        logger.error(f"已经和谐了，无法获取元数据")
         df.at[index, "censored"] = True
         df.at[index, "modified"] = True
         return
@@ -114,20 +114,20 @@ def update_metadata(df, index):
 def exec():
     logger.info("将原始数据按回答分离")
     raw_df = read_raw_data(RAW_PATH)
-    logger.info(raw_df.shape)
+    logger.info(f"raw_df.shape: {raw_df.shape}")
     washed_df = pd.concat(
         [read_washed_data(MIDDLE_PATH)],
         ignore_index=True,
     )
-    logger.info(washed_df.shape)
+    logger.info(f"washed_df.shape: {washed_df.shape}")
     delta_df = drop_duplicates_from(raw_df, washed_df)
-    logger.info(delta_df.shape)
+    logger.info(f"delta_df.shape: {delta_df.shape}")
 
     # 新导出收藏写入
     for index in delta_df.index:
-        logger.info(f"——————————————————————{index}")
+        logger.info(f"——————————————————————{index + 1}/{delta_df.shape[0]}")
         logger.info(
-            f"我要验牌，正在处理: {delta_df.loc[index]['favorite_folder']}"
+            f"正在处理: {delta_df.loc[index]['favorite_folder']}"
             f" - {delta_df.loc[index]['title']}"
         )
         update_metadata(delta_df, index)

@@ -104,8 +104,12 @@ def picture_localization(delta_df, index):
             )  # 默认jpg
             new_filename = f"{delta_df.loc[index]['title']}_{get_shorted_hash(delta_df.loc[index]['hash'])}_{pic_hash}{ext}"
             new_path = os.path.join(pic_dir, new_filename)
-            with open(new_path, "wb") as f:
-                f.write(pic_content)
+            if os.path.exists(new_path):
+                logger.warning(f"图片已存在：{new_path}")
+            else:
+                with open(new_path, "wb") as f:
+                    f.write(pic_content)
+                logger.info(f"下载图片到本地：{new_filename}")
             # 替换链接
             old_link = match.group(0)
             new_link = f"\n\n![{match.group(2)}]({new_path})"
@@ -124,15 +128,15 @@ def exec():
         [read_washed_data(MANUAL_WASHED_PATH)],
         ignore_index=True,
     )
-    logger.info(washed_df.shape)
+    logger.info(f"washed_df.shape: {washed_df.shape}")
     delta_df = drop_duplicates_from(middle_df, washed_df)
-    logger.info(delta_df.shape)
+    logger.info(f"delta_df.shape: {delta_df.shape}")
     # 原有收藏元数据更新核验
     for index in delta_df.index:
-        logger.info(f"——————————————————————{index}")
+        logger.info(f"——————————————————————{index + 1}/{delta_df.shape[0]}")
         logger.info(
-            f"给我擦皮鞋，对清洗后的数据做后处理: {get_shorted_hash(delta_df.loc[index]['hash'])}"
-            + f"_{delta_df.loc[index]['title']}"
+            f"给我擦皮鞋，对清洗后的数据做后处理: {get_shorted_hash(delta_df.loc[index]['title'])}"
+            + f"_{delta_df.loc[index]['hash']}"
         )
         refine_final_data(delta_df, index)
         picture_localization(delta_df, index)
