@@ -24,23 +24,33 @@ from zhihu_favourite.public.public_util import (
 )
 
 
-def refine_final_data(delta_df, index):
+def refine_data(delta_df, index):
+    answer = delta_df.loc[index]["answer"]
     # 替换空连接[]()
-    if "[]()" in delta_df.loc[index]["answer"]:
-        delta_df.at[index, "answer"] = delta_df.loc[index]["answer"].replace("[]()", "")
+    new_answer = answer.replace("[]()", "")
+    if new_answer != answer:
         delta_df.at[index, "modified"] = True
         logger.info("替换空连接")
     # 删除汉字或全角标点行前空格或 tab
+    answer = new_answer
     new_answer = re.sub(
         # 正则释义               数字 破折号 左引号     汉字       全角标点    全角英文数字
         r"^[\u200b\u3000 \t]+(?=[0-9\u2014\u201c\u4e00-\u9fff\u3000-\u303F\uFF00-\uFFEF])",
         "",
-        delta_df.loc[index]["answer"],
+        answer,
         flags=re.MULTILINE,
     )
-    if new_answer != delta_df.loc[index]["answer"]:
-        delta_df.at[index, "answer"] = new_answer
+    if new_answer != answer:
+        delta_df.at[index, "modified"] = True
         logger.info("删除前导空格")
+    # 删除多余空行
+    answer = new_answer
+    new_answer = re.sub(r"\n{3,}", "\n\n", answer)
+    if new_answer != answer:
+        delta_df.at[index, "modified"] = True
+        logger.info("删除空行")
+    answer = new_answer
+    delta_df.at[index, "answer"] = answer
 
 
 def picture_localization(delta_df, index):
