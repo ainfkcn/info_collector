@@ -123,9 +123,9 @@ def picture_localization(delta_df, index):
 def exec():
     logger.info("对分离后的数据进行二次加工")
     middle_df = read_washed_data(MIDDLE_PATH)
-    logger.info(middle_df.shape)
+    logger.info(f"middle_df.shape: {middle_df.shape}")
     washed_df = pd.concat(
-        [read_washed_data(MANUAL_WASHED_PATH)],
+        [read_washed_data(AUTO_WASHED_PATH), read_washed_data(MANUAL_WASHED_PATH)],
         ignore_index=True,
     )
     logger.info(f"washed_df.shape: {washed_df.shape}")
