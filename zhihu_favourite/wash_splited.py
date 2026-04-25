@@ -140,12 +140,12 @@ def exec():
         )
         picture_localization(delta_df, index)
         refine_data(delta_df, index)
-        # if not delta_df.at[index, "modified"]:
-        #     logger.info("这条无需处理，放入特殊目录")
-        #     delta_df.at[index, "modified"] = True
-        #     write_row_to_file(delta_df, index, AUTO_WASHED_PASSED_PATH)
-        # else:
-        write_row_to_file(delta_df, index, AUTO_WASHED_PATH)
+        if not delta_df.at[index, "modified"]:
+            logger.info("这条无需处理，放入特殊目录")
+            delta_df.at[index, "modified"] = True
+            write_row_to_file(delta_df, index, AUTO_WASHED_PATH)
+        else:
+            write_row_to_file(delta_df, index, AUTO_WASHED_PATH)
 
 
 if __name__ == "__main__":
