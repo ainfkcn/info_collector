@@ -125,7 +125,7 @@ def exec():
 
     # 新导出收藏写入
     for index in delta_df.index:
-        logger.info(f"——————————————————————{index + 1}/{delta_df.shape[0]}")
+        logger.info(f"——————————————————————{index + 1}/{raw_df.shape[0]}")
         logger.info(
             f"正在处理: {delta_df.loc[index]['favorite_folder']}"
             f" - {delta_df.loc[index]['title']}"

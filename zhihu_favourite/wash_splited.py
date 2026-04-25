@@ -133,7 +133,7 @@ def exec():
     logger.info(f"delta_df.shape: {delta_df.shape}")
     # 原有收藏元数据更新核验
     for index in delta_df.index:
-        logger.info(f"——————————————————————{index + 1}/{delta_df.shape[0]}")
+        logger.info(f"——————————————————————{index + 1}/{middle_df.shape[0]}")
         logger.info(
             f"给我擦皮鞋，对清洗后的数据做后处理: {get_shorted_hash(delta_df.loc[index]['title'])}"
             + f"_{delta_df.loc[index]['hash']}"
