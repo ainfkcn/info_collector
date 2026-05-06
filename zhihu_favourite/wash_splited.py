@@ -7,10 +7,9 @@ from loguru import logger
 from urllib.parse import urlparse, parse_qs, unquote
 
 from config import (
-    ZHIHU_FAVOURITE_ROOT,
+    ROOT_PATH,
     MIDDLE_PATH,
     AUTO_WASHED_PATH,
-    AUTO_WASHED_PASSED_PATH,
     MANUAL_WASHED_PATH,
 )
 from zhihu_favourite.public.io_util import (
@@ -55,7 +54,7 @@ def refine_data(delta_df, index):
 
 def picture_localization(delta_df, index):
     # 图片本地化
-    pic_dir = os.path.join(ZHIHU_FAVOURITE_ROOT, ".pic")
+    pic_dir = os.path.join(ROOT_PATH, ".pic")
     os.makedirs(pic_dir, exist_ok=True)
     answer = delta_df.loc[index]["answer"]
     for match in re.finditer(r"(\n\n)?!\[(.*?)\]\((.*?)\)(\n\n)?", answer):
@@ -141,7 +140,7 @@ def exec():
         picture_localization(delta_df, index)
         refine_data(delta_df, index)
         if not delta_df.at[index, "modified"]:
-            logger.info("这条无需处理，放入特殊目录")
+            logger.info("这条无需处理，直接写入")
             delta_df.at[index, "modified"] = True
             write_row_to_file(delta_df, index, AUTO_WASHED_PATH)
         else:
