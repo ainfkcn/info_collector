@@ -58,33 +58,32 @@ def read_raw_data(path):
 
 def read_washed_data(path):
     new_rows = []
-    for file in os.listdir(path):
-        if file.startswith("."):
-            continue
-        file_path = os.path.join(path, file)
-        if not os.path.isfile(file_path):
-            continue
-        with open(file_path, "r", encoding="utf-8") as f:
-            single_final_answer = frontmatter.load(f)
-        new_rows.append(
-            {
-                "hash": single_final_answer["hash"],
-                "tags": single_final_answer["tags"],
-                "created_time": single_final_answer["created_time"],
-                "edited_time": single_final_answer["edited_time"],
-                "favorite_time_after": single_final_answer["favorite_time_after"],
-                "favorite_time_before": single_final_answer["favorite_time_before"],
-                "author": single_final_answer["author"],
-                "author_id": single_final_answer["author_id"],
-                "censored": single_final_answer.get("censored", False),
-                # 不写入文件的跟踪变量
-                "favorite_folder": None,
-                "title": get_title(single_final_answer.content),
-                "answer": single_final_answer.content,
-                "modified": False,
-                "json_str": None,
-            }
-        )
+    for (root, dirs, files) in os.walk(path):
+        for file in files:
+            if not file.endswith(".md"):
+                continue
+            file_path = os.path.join(root, file)
+            with open(file_path, "r", encoding="utf-8") as f:
+                single_final_answer = frontmatter.load(f)
+            new_rows.append(
+                {
+                    "hash": single_final_answer["hash"],
+                    "tags": single_final_answer["tags"],
+                    "created_time": single_final_answer["created_time"],
+                    "edited_time": single_final_answer["edited_time"],
+                    "favorite_time_after": single_final_answer["favorite_time_after"],
+                    "favorite_time_before": single_final_answer["favorite_time_before"],
+                    "author": single_final_answer["author"],
+                    "author_id": single_final_answer["author_id"],
+                    "censored": single_final_answer.get("censored", False),
+                    # 不写入文件的跟踪变量
+                    "favorite_folder": None,
+                    "title": get_title(single_final_answer.content),
+                    "answer": single_final_answer.content,
+                    "modified": False,
+                    "json_str": None,
+                }
+            )
     return pd.DataFrame(new_rows, columns=DATAFRAME_COLUMNS)
 
 
