@@ -1,6 +1,6 @@
 import os
 
-ROOT_PATH = "E:"
+ROOT_PATH = "E:\\"
 
 RAW_PATH = os.path.join(ROOT_PATH, "1_raw", "zhihu_favourite")
 MIDDLE_PATH = os.path.join(ROOT_PATH, "2_middle")
