@@ -1,7 +1,7 @@
 import pandas as pd
 
 from loguru import logger
-from config import MANUAL_WASHED_PATH, AUTO_WASHED_PATH, MANUAL_WASHED_PATH
+from config import MIDDLE_PATH, AUTO_WASHED_PATH, MANUAL_WASHED_PATH
 from zhihu_favourite.public.io_util import read_washed_data, write_row_to_file
 from zhihu_favourite.public.public_util import get_shorted_hash
 from zhihu_favourite.public.network_util import update_metadata_from_local
@@ -9,7 +9,7 @@ from zhihu_favourite.public.network_util import update_metadata_from_local
 
 def exec():
     logger.info("刷新清洗后的数据的元信息")
-    middle_df = read_washed_data(MANUAL_WASHED_PATH).set_index("hash", drop=False)
+    middle_df = read_washed_data(MIDDLE_PATH).set_index("hash", drop=False)
     logger.info(f"middle_df.shape: {middle_df.shape}")
     auto_washed_df = read_washed_data(AUTO_WASHED_PATH)
     logger.info(f"auto_washed_df.shape: {auto_washed_df.shape}")
