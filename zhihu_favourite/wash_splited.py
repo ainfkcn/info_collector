@@ -130,7 +130,15 @@ def exec():
     logger.info(f"washed_df.shape: {washed_df.shape}")
     delta_df = drop_duplicates_from(middle_df, washed_df)
     logger.info(f"delta_df.shape: {delta_df.shape}")
-    # 原有收藏元数据更新核验
+
+    if washed_df.shape[0] > middle_df.shape[0]:
+        strange_df = drop_duplicates_from(washed_df, middle_df)
+        logger.warning(f"清洗后多了这些数据")
+        for index in strange_df.index:
+            logger.warning(
+                f"{strange_df.loc[index]['title']}_{get_shorted_hash(strange_df.loc[index]['hash'])}"
+            )
+
     for index in delta_df.index:
         logger.info(f"——————————————————————{index + 1}/{middle_df.shape[0]}")
         logger.info(

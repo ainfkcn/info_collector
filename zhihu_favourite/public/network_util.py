@@ -213,3 +213,19 @@ def update_metadata(df, index):
     logger.info(
         f"获取元数据成功: 作者: {author}, 创建时间: {created_time}, 编辑时间: {edited_time}"
     )
+
+def update_metadata_from_local(middle_df, washed_df, index):
+    middle_index = washed_df.loc[index]["hash"]
+    if middle_index not in middle_df.index:
+        logger.warning(f"当前hash {middle_index} 在middle中未找到，跳过")
+        washed_df.at[index, "modified"] = False
+        return
+    washed_df.at[index, "tags"] = middle_df.loc[middle_index]["tags"]
+    washed_df.at[index, "created_time"] = middle_df.loc[middle_index]["created_time"]
+    washed_df.at[index, "edited_time"] = middle_df.loc[middle_index]["edited_time"]
+    washed_df.at[index, "favorite_time_before"] = middle_df.loc[middle_index]["favorite_time_before"]
+    washed_df.at[index, "favorite_time_after"] = middle_df.loc[middle_index]["favorite_time_after"]
+    washed_df.at[index, "author"] = middle_df.loc[middle_index]["author"]
+    washed_df.at[index, "author_id"] = middle_df.loc[middle_index]["author_id"]
+    washed_df.at[index, "censored"] = middle_df.loc[middle_index]["censored"]
+    washed_df.at[index, "modified"] = True

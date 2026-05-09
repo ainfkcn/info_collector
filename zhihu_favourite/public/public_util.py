@@ -18,6 +18,7 @@ DATAFRAME_COLUMNS = [
     "answer",
     "modified",
     "json_str",
+    "file_path",
 ]
 
 
@@ -32,15 +33,20 @@ def get_title(answer):
     return title
 
 
-def merge_duplicates(df):
+def merge_duplicates(df, reset_tag=False):
     """按hash分组合并重复行，tags列融合成不重复的列表"""
     agg_map = {col: "first" for col in DATAFRAME_COLUMNS if col != "hash"}
     # tag聚合成列表
-    agg_map["tags"] = lambda x: sorted({tag for tags_list in x for tag in tags_list})
+    if reset_tag:
+        agg_map["tags"] = "last"
+    else:
+        agg_map["tags"] = lambda x: sorted({tag for tags_list in x for tag in tags_list})
     # 收藏时间上限取最早的
     agg_map["favorite_time_before"] = lambda x: min(x)
     # title取最长的
     agg_map["title"] = lambda x: max(x, key=len)
+    # 同步刷新answer
+    agg_map["answer"] = lambda x: max(x, key=len)
     return df.groupby("hash").agg(agg_map).reset_index()
 
 

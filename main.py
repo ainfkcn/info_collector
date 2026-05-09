@@ -2,6 +2,7 @@ from loguru import logger
 
 import zhihu_favourite.split_raw
 import zhihu_favourite.wash_splited
+import zhihu_favourite.update_metadata
 
 
 def exec():
@@ -11,8 +12,9 @@ def exec():
         rotation="10 MB",
         encoding="utf-8",
     )
-    zhihu_favourite.split_raw.exec()
+    zhihu_favourite.split_raw.exec(refresh_metadata=False)
     zhihu_favourite.wash_splited.exec()
+    zhihu_favourite.update_metadata.exec()
 
 
 if __name__ == "__main__":

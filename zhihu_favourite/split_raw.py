@@ -14,14 +14,17 @@ from zhihu_favourite.public.public_util import drop_duplicates_from
 from zhihu_favourite.public.network_util import update_metadata
 
 
-def exec():
+def exec(refresh_metadata=False):
     logger.info("将原始数据按回答分离")
     raw_df = read_raw_data(RAW_PATH)
     logger.info(f"raw_df.shape: {raw_df.shape}")
-    washed_df = pd.concat(
-        [read_washed_data(MIDDLE_PATH)],
-        ignore_index=True,
-    )
+    if refresh_metadata:
+        washed_df = pd.DataFrame()
+    else:
+        washed_df = pd.concat(
+            [read_washed_data(MIDDLE_PATH)],
+            ignore_index=True,
+        )
     logger.info(f"washed_df.shape: {washed_df.shape}")
     delta_df = drop_duplicates_from(raw_df, washed_df)
     logger.info(f"delta_df.shape: {delta_df.shape}")
