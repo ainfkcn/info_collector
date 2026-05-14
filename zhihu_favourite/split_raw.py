@@ -4,7 +4,7 @@ import pandas as pd
 
 from loguru import logger
 
-from config import RAW_PATH, MIDDLE_PATH
+from config import RAW_PATH, MIDDLE_PATH, MANUAL_WASHED_PATH
 from zhihu_favourite.public.io_util import (
     read_raw_data,
     read_washed_data,
@@ -19,7 +19,10 @@ def exec(refresh_metadata=False):
     raw_df = read_raw_data(RAW_PATH)
     logger.info(f"raw_df.shape: {raw_df.shape}")
     if refresh_metadata:
-        washed_df = pd.DataFrame()
+        washed_df = pd.DataFrame(
+            [read_washed_data(MANUAL_WASHED_PATH)],
+            ignore_index=True,
+        )
     else:
         washed_df = pd.concat(
             [read_washed_data(MIDDLE_PATH)],
